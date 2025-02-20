@@ -6,11 +6,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("modal");
     const modalImg = document.querySelector("#modal img");
     const modalText = document.getElementById("visual-novel-box");
+    const fButton = document.getElementById("f-btn");
 
     const playerSpeed = 2, playerSize = player.offsetWidth;
     let playerPosX = 60, playerPosY = 250;
 
-    let isMoving = true;
     let lastDirection = "right";
     let keys = {};
     let walls = [], interactiveObjects = [];
@@ -81,60 +81,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // For swiping on CP
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchEndX = 0;
-    let touchEndY = 0;
+    let movementInterval;
+    let isUsingButtons = false;
 
-    document.addEventListener("touchstart", (event) => {
-        touchStartX = event.touches[0].clientX;
-        touchStartY = event.touches[0].clientY;
-    });
-
-    document.addEventListener("touchend", (event) => {
-        touchEndX = event.changedTouches[0].clientX;
-        touchEndY = event.changedTouches[0].clientY;
-        handleSwipe();
-    });
-
-    function handleSwipe() {
-        let deltaX = touchEndX - touchStartX;
-        let deltaY = touchEndY - touchStartY;
-    
-        const swipeThreshold = 30;
-    
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            if (deltaX > swipeThreshold) { // Swipe Right
-                playerPosX += playerSpeed;
-                lastDirection = "right";
-            } else if (deltaX < -swipeThreshold) { // Swipe Left
-                playerPosX -= playerSpeed;
-                lastDirection = "left";
-            }
-        } else {
-            if (deltaY > swipeThreshold) { // Swipe Down
-                playerPosY += playerSpeed;
-            } else if (deltaY < -swipeThreshold) { // Swipe Up
-                playerPosY -= playerSpeed;
-            }
-        }
-    
-        if (isWithinBounds(playerPosX, playerPosY) && !isColliding(playerPosX, playerPosY)) {
-            player.style.left = playerPosX + "px";
-            player.style.top = playerPosY + "px";
-        }
-    }    
-
-    // For controlling player movement on PC
-    function movePlayer() {
+    function movePlayer(direction = null) {
         let newX = playerPosX, newY = playerPosY;
         let moving = false;
 
-        if (keys['w'] || keys['ArrowUp']) { newY -= playerSpeed; moving = true; }
-        if (keys['s'] || keys['ArrowDown']) { newY += playerSpeed; moving = true; }
-        if (keys['a'] || keys['ArrowLeft']) { newX -= playerSpeed; moving = true; lastDirection = "left"; }
-        if (keys['d'] || keys['ArrowRight']) { newX += playerSpeed; moving = true; lastDirection = "right"; }
+        if (keys['w'] || keys['ArrowUp'] || direction === "up") { newY -= playerSpeed; moving = true; }
+        if (keys['s'] || keys['ArrowDown'] || direction === "down") { newY += playerSpeed; moving = true; }
+        if (keys['a'] || keys['ArrowLeft'] || direction === "left") { newX -= playerSpeed; moving = true; lastDirection = "left"; }
+        if (keys['d'] || keys['ArrowRight'] || direction === "right") { newX += playerSpeed; moving = true; lastDirection = "right"; }
 
         let interactionCheck = checkInteraction(newX, newY);
         let canMove = !isColliding(newX, newY) && !interactionCheck.collision && isWithinBounds(newX, newY);
@@ -150,17 +107,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (interactionCheck.near) {
             message.textContent = `Press F to show "${interactionCheck.id}"`;
+            fButton.style.display = "block";
         } else if (canMove) {
             message.textContent = "Explore!";
+            fButton.style.display = "none";
         }
 
-        if (keys['f'] && interactionCheck.near) {
-            openModal(interactionCheck.id);
-        }
+        if (keys['f'] && interactionCheck.near) openModal(interactionCheck.id);
+
+        fButton.addEventListener("mouseup", () => { // For F button
+            if (interactionCheck.near) openModal(interactionCheck.id);
+        });
 
         player.style.transform = lastDirection === "left" ? "scaleX(-1)" : "scaleX(1)";
-        requestAnimationFrame(movePlayer);
+
+        if (!isUsingButtons) requestAnimationFrame(() => movePlayer(null));
     }
+
+    function startMoving(direction) {
+        if (!isUsingButtons) {
+            isUsingButtons = true;
+            movePlayer(direction);
+            movementInterval = setInterval(() => movePlayer(direction), 5);
+        }
+    }
+
+    function stopMoving() {
+        clearInterval(movementInterval);
+        isUsingButtons = false;
+        requestAnimationFrame(() => movePlayer(null));
+    }
+
+    document.getElementById("up-btn").addEventListener("mousedown", () => startMoving("up"));
+    document.getElementById("down-btn").addEventListener("mousedown", () => startMoving("down"));
+    document.getElementById("left-btn").addEventListener("mousedown", () => startMoving("left"));
+    document.getElementById("right-btn").addEventListener("mousedown", () => startMoving("right"));
+
+    document.getElementById("up-btn").addEventListener("mouseup", stopMoving);
+    document.getElementById("down-btn").addEventListener("mouseup", stopMoving);
+    document.getElementById("left-btn").addEventListener("mouseup", stopMoving);
+    document.getElementById("right-btn").addEventListener("mouseup", stopMoving);
+
+    requestAnimationFrame(() => movePlayer(null));
 
     function openModal(id) {
         if (id === "dialog1") {
@@ -179,13 +167,8 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.style.display = "flex";
     }
 
-    modal.addEventListener("click", () => {
-        modal.style.display = "none";
-    });
-
-    document.addEventListener("keydown", () => {
-        modal.style.display = "none";
-    });
+    modal.addEventListener("click", () => { modal.style.display = "none"; });
+    document.addEventListener("keydown", () => { modal.style.display = "none"; });
 
     function isColliding(x, y) {
         let playerRect = { x, y, width: playerSize, height: playerSize };
@@ -219,10 +202,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 result.near = true;
                 result.id = obj.dataset.id;
                 obj.style.display = "block";
-                obj.style.animation = "blink 1s infinite"; 
+                obj.style.animation = "blink 1s infinite";
             } else {
                 obj.style.display = "none";
-                obj.style.animation = "none"; 
+                obj.style.animation = "none";
             }
         });
 
