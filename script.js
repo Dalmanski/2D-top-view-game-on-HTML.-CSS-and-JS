@@ -81,14 +81,60 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // For swiping on CP
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+
+    document.addEventListener("touchstart", (event) => {
+        touchStartX = event.touches[0].clientX;
+        touchStartY = event.touches[0].clientY;
+    });
+
+    document.addEventListener("touchend", (event) => {
+        touchEndX = event.changedTouches[0].clientX;
+        touchEndY = event.changedTouches[0].clientY;
+        handleSwipe();
+    });
+
+    function handleSwipe() {
+        let deltaX = touchEndX - touchStartX;
+        let deltaY = touchEndY - touchStartY;
+    
+        const swipeThreshold = 30;
+    
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            if (deltaX > swipeThreshold) { // Swipe Right
+                playerPosX += playerSpeed;
+                lastDirection = "right";
+            } else if (deltaX < -swipeThreshold) { // Swipe Left
+                playerPosX -= playerSpeed;
+                lastDirection = "left";
+            }
+        } else {
+            if (deltaY > swipeThreshold) { // Swipe Down
+                playerPosY += playerSpeed;
+            } else if (deltaY < -swipeThreshold) { // Swipe Up
+                playerPosY -= playerSpeed;
+            }
+        }
+    
+        if (isWithinBounds(playerPosX, playerPosY) && !isColliding(playerPosX, playerPosY)) {
+            player.style.left = playerPosX + "px";
+            player.style.top = playerPosY + "px";
+        }
+    }    
+
+    // For controlling player movement on PC
     function movePlayer() {
         let newX = playerPosX, newY = playerPosY;
         let moving = false;
 
-        if (keys['w']) { newY -= playerSpeed; moving = true; }
-        if (keys['s']) { newY += playerSpeed; moving = true; }
-        if (keys['a']) { newX -= playerSpeed; moving = true; lastDirection = "left"; }
-        if (keys['d']) { newX += playerSpeed; moving = true; lastDirection = "right"; }
+        if (keys['w'] || keys['ArrowUp']) { newY -= playerSpeed; moving = true; }
+        if (keys['s'] || keys['ArrowDown']) { newY += playerSpeed; moving = true; }
+        if (keys['a'] || keys['ArrowLeft']) { newX -= playerSpeed; moving = true; lastDirection = "left"; }
+        if (keys['d'] || keys['ArrowRight']) { newX += playerSpeed; moving = true; lastDirection = "right"; }
 
         let interactionCheck = checkInteraction(newX, newY);
         let canMove = !isColliding(newX, newY) && !interactionCheck.collision && isWithinBounds(newX, newY);
