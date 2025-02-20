@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("modal");
     const modalImg = document.querySelector("#modal img");
     const modalText = document.getElementById("visual-novel-box");
-    const fButton = document.getElementById("f-btn");
 
     const playerSpeed = 2, playerSize = player.offsetWidth;
     let playerPosX = 60, playerPosY = 250;
@@ -81,17 +80,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    let movementInterval;
-    let isUsingButtons = false;
-
-    function movePlayer(direction = null) {
+    function movePlayer() {
         let newX = playerPosX, newY = playerPosY;
         let moving = false;
 
-        if (keys['w'] || keys['ArrowUp'] || direction === "up") { newY -= playerSpeed; moving = true; }
-        if (keys['s'] || keys['ArrowDown'] || direction === "down") { newY += playerSpeed; moving = true; }
-        if (keys['a'] || keys['ArrowLeft'] || direction === "left") { newX -= playerSpeed; moving = true; lastDirection = "left"; }
-        if (keys['d'] || keys['ArrowRight'] || direction === "right") { newX += playerSpeed; moving = true; lastDirection = "right"; }
+        if (keys['w'] || keys['ArrowUp']) { newY -= playerSpeed; moving = true; }
+        if (keys['s'] || keys['ArrowDown']) { newY += playerSpeed; moving = true; }
+        if (keys['a'] || keys['ArrowLeft']) { newX -= playerSpeed; moving = true; lastDirection = "left"; }
+        if (keys['d'] || keys['ArrowRight']) { newX += playerSpeed; moving = true; lastDirection = "right"; }
 
         let interactionCheck = checkInteraction(newX, newY);
         let canMove = !isColliding(newX, newY) && !interactionCheck.collision && isWithinBounds(newX, newY);
@@ -107,68 +103,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (interactionCheck.near) {
             message.textContent = `Press F to show "${interactionCheck.id}"`;
-            fButton.style.display = "block";
         } else if (canMove) {
             message.textContent = "Explore!";
-            fButton.style.display = "none";
         }
 
         if (keys['f'] && interactionCheck.near) openModal(interactionCheck.id);
 
-        fButton.addEventListener("mouseup", () => { // For F button
-            if (interactionCheck.near) openModal(interactionCheck.id);
-        });
-
         player.style.transform = lastDirection === "left" ? "scaleX(-1)" : "scaleX(1)";
 
-        if (!isUsingButtons) requestAnimationFrame(() => movePlayer(null));
+        requestAnimationFrame(movePlayer); // This will loop movePlayer()
     }
-
-    function startMoving(direction) {
-        if (!isUsingButtons) {
-            isUsingButtons = true;
-            movePlayer(direction);
-            movementInterval = setInterval(() => movePlayer(direction), 5);
-        }
-    }
-
-    function stopMoving() {
-        clearInterval(movementInterval);
-        isUsingButtons = false;
-        requestAnimationFrame(() => movePlayer(null));
-    }
-
-    document.getElementById("up-btn").addEventListener("mousedown", () => startMoving("up"));
-    document.getElementById("down-btn").addEventListener("mousedown", () => startMoving("down"));
-    document.getElementById("left-btn").addEventListener("mousedown", () => startMoving("left"));
-    document.getElementById("right-btn").addEventListener("mousedown", () => startMoving("right"));
-
-    document.getElementById("up-btn").addEventListener("mouseup", stopMoving);
-    document.getElementById("down-btn").addEventListener("mouseup", stopMoving);
-    document.getElementById("left-btn").addEventListener("mouseup", stopMoving);
-    document.getElementById("right-btn").addEventListener("mouseup", stopMoving);
-
-    requestAnimationFrame(() => movePlayer(null));
 
     function openModal(id) {
         if (id === "dialog1") {
-            modalImg.src = "Pictures\\floor.png";
+            modalImg.src = "Pictures/floor.png";
             modalText.textContent = "This is dialog 1's description.";
         } else if (id === "dialog2") {
-            modalImg.src = "Pictures\\floor.png";
+            modalImg.src = "Pictures/floor.png";
             modalText.textContent = "This is dialog 2's description.";
         } else if (id === "dialog3") {
-            modalImg.src = "Pictures\\floor.png";
+            modalImg.src = "Pictures/floor.png";
             modalText.textContent = "This is dialog 3's description.";
         } else if (id === "dialog4") {
-            modalImg.src = "Pictures\\floor.png";
+            modalImg.src = "Pictures/floor.png";
             modalText.textContent = "This is dialog 4's description.";
         }
         modal.style.display = "flex";
     }
 
+    // Only close the modal with a click (or a dedicated key) so movement keys aren't interfered with.
     modal.addEventListener("click", () => { modal.style.display = "none"; });
-    document.addEventListener("keydown", () => { modal.style.display = "none"; });
+    // Removed the keydown event that was hiding the modal immediately
 
     function isColliding(x, y) {
         let playerRect = { x, y, width: playerSize, height: playerSize };
