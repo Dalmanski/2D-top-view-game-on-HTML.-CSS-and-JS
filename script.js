@@ -13,7 +13,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const leftButton = document.getElementById("left-btn");
     const rightButton = document.getElementById("right-btn");
 
-    const playerSpeed = 2, playerSize = player.offsetWidth;
+    let soundPaperTurn = new Audio("Sounds\\paper.wav");
+
+    let playerSpeed = 2, playerSize = player.offsetWidth;
     let playerPosX = 60, playerPosY = 250;
     let lastDirection = "right";
     let keys = {};
@@ -107,9 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
             player.style.top = playerPosY + "px";
         }
 
-        player.style.backgroundImage = moving
-            ? `url("Pictures/robot-run.gif")`
-            : `url("Pictures/robot-idle.gif")`;
+        player.style.backgroundImage = moving ? `url("Pictures/robot-run.gif")` : `url("Pictures/robot-idle.gif")`;
 
         if (interactionCheck.near) {
             message.textContent = `Press F to show "${interactionCheck.id}"`;
@@ -119,9 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fButton.style.display = "none";
         }
 
-        if (keys['f'] && interactionCheck.near) {
-            openModalVN(interactionCheck.id);
-        }
+        if (keys['f'] && interactionCheck.near) openModalVN(interactionCheck.id);
 
         player.style.transform = lastDirection === "left" ? "scaleX(-1)" : "scaleX(1)";
     }
@@ -196,6 +194,8 @@ document.addEventListener("DOMContentLoaded", () => {
         modalVN.style.display = "flex";
         modalVN.classList.add("fade-in");
         modalVNImg.src = "Pictures/floor.png";
+        soundPaperTurn.currentTime = 0;
+        soundPaperTurn.play();
 
         if (id === "dialog1") {
             modalVNTitle.textContent = "Dialog 1";
