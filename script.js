@@ -7,6 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalImg = document.querySelector("#modal img");
     const modalText = document.getElementById("visual-novel-box");
     const fButton = document.getElementById("f-btn");
+    const upButton = document.getElementById("up-btn");
+    const downButton = document.getElementById("down-btn");
+    const leftButton = document.getElementById("left-btn");
+    const rightButton = document.getElementById("right-btn");
 
     const playerSpeed = 2, playerSize = player.offsetWidth;
     let playerPosX = 60, playerPosY = 250;
@@ -15,10 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let keys = {};
     let walls = [], interactiveObjects = [];
 
-    // Maintenance
-    const showHitbox = 0; // 0 false, 1 true
+    // Maintenance (0 false, 1 true)
+    const showHitbox = 0, showCoordinate = 0;
 
     // To show coordinates on the top-left
+    coordinates.style.display = showCoordinate ? "block" : "none";
+
     container.addEventListener('mousemove', (e) => {
         const rect = container.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -122,16 +128,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fButton.addEventListener("mouseup", () => {
         const currentInteraction = checkInteraction(playerPosX, playerPosY);
-        if (currentInteraction.near) {
-            openModal(currentInteraction.id);
-        }
+        if (currentInteraction.near) openModal(currentInteraction.id);
     });
-    fButton.addEventListener("touchend", (e) => {
+    fButton.addEventListener("touchstart", (e) => {
         e.preventDefault();
         const currentInteraction = checkInteraction(playerPosX, playerPosY);
-        if (currentInteraction.near) {
-            openModal(currentInteraction.id);
-        }
+        if (currentInteraction.near) openModal(currentInteraction.id);
     });
 
     function startMoving(direction) {
@@ -149,26 +151,26 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(() => movePlayer(null));
     }
 
-    document.getElementById("up-btn").addEventListener("mousedown", () => startMoving("up"));
-    document.getElementById("down-btn").addEventListener("mousedown", () => startMoving("down"));
-    document.getElementById("left-btn").addEventListener("mousedown", () => startMoving("left"));
-    document.getElementById("right-btn").addEventListener("mousedown", () => startMoving("right"));
+    upButton.addEventListener("mousedown", () => startMoving("up"));
+    downButton.addEventListener("mousedown", () => startMoving("down"));
+    leftButton.addEventListener("mousedown", () => startMoving("left"));
+    rightButton.addEventListener("mousedown", () => startMoving("right"));
 
-    document.getElementById("up-btn").addEventListener("mouseup", stopMoving);
-    document.getElementById("down-btn").addEventListener("mouseup", stopMoving);
-    document.getElementById("left-btn").addEventListener("mouseup", stopMoving);
-    document.getElementById("right-btn").addEventListener("mouseup", stopMoving);
+    upButton.addEventListener("mouseup", stopMoving);
+    downButton.addEventListener("mouseup", stopMoving);
+    leftButton.addEventListener("mouseup", stopMoving);
+    rightButton.addEventListener("mouseup", stopMoving);
 
     // For mobile touch support
-    document.getElementById("up-btn").addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("up"); });
-    document.getElementById("down-btn").addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("down"); });
-    document.getElementById("left-btn").addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("left"); });
-    document.getElementById("right-btn").addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("right"); });
+    upButton.addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("up"); });
+    downButton.addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("down"); });
+    leftButton.addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("left"); });
+    rightButton.addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("right"); });
 
-    document.getElementById("up-btn").addEventListener("touchend", stopMoving);
-    document.getElementById("down-btn").addEventListener("touchend", stopMoving);
-    document.getElementById("left-btn").addEventListener("touchend", stopMoving);
-    document.getElementById("right-btn").addEventListener("touchend", stopMoving);
+    upButton.addEventListener("touchend", stopMoving);
+    downButton.addEventListener("touchend", stopMoving);
+    leftButton.addEventListener("touchend", stopMoving);
+    rightButton.addEventListener("touchend", stopMoving);
 
     requestAnimationFrame(() => movePlayer(null));
 
