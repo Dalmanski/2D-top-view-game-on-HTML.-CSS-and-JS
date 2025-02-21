@@ -20,6 +20,7 @@ body {
     z-index: 1000;
 }
 
+/* img src: https://images.app.goo.gl/kcCXS6G3T55B8wYy6 */
 #game-container {
     position: relative;
     background: no-repeat center/cover;
@@ -113,7 +114,7 @@ button:active {
 }
 
 /* Modal styling */
-#modal {
+#modal-vn {
     display: none;
     position: fixed;
     top: 0;
@@ -126,7 +127,16 @@ button:active {
     flex-direction: column;
 }
 
-#modal-content {
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#modal-vn.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+#modal-vn-content {
     background: black;
     padding: 20px;
     border-radius: 10px;
@@ -135,7 +145,7 @@ button:active {
     position: relative;
 }
 
-#modal img {
+#modal-vn img {
     width: 100%;
     border-radius: 10px;
     -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 60%, rgba(0, 0, 0, 0) 100%);
@@ -143,12 +153,30 @@ button:active {
 }
 
 #visual-novel-box {
-    background: rgba(128, 128, 128, 0.2);
+    position: relative;
+    background: rgba(128, 128, 128, 0.1);
     border: thick double rgb(140, 140, 140);
     color: white;
     font-size: 24px;
-    padding: 40px;
+    padding: 20px;
     margin-top: 10px;
     border-radius: 20px;
-    height: 100px;
+    height: 150px;
+    /* Increased to accommodate the title */
+}
+
+.vn-title {
+    margin: 0;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 600;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.vn-text {
+    margin-top: 15px;
+    font-size: 20px;
+    text-align: center;
+    word-wrap: break-word;
 }

@@ -3,9 +3,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("game-container");
     const message = document.getElementById("message");
     const coordinates = document.querySelector('.coordinates');
-    const modal = document.getElementById("modal");
-    const modalImg = document.querySelector("#modal img");
-    const modalText = document.getElementById("visual-novel-box");
+    const modalVN = document.getElementById("modal-vn");
+    const modalVNImg = document.querySelector("#modal-vn img");
+    const modalVNTitle = document.querySelector(".vn-title");
+    const modalVNText = document.querySelector(".vn-text");
     const fButton = document.getElementById("f-btn");
     const upButton = document.getElementById("up-btn");
     const downButton = document.getElementById("down-btn");
@@ -14,40 +15,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const playerSpeed = 2, playerSize = player.offsetWidth;
     let playerPosX = 60, playerPosY = 250;
-
     let lastDirection = "right";
     let keys = {};
     let walls = [], interactiveObjects = [];
+    let isModalVNOpen = false;
 
     // Maintenance (0 false, 1 true)
     const showHitbox = 0, showCoordinate = 0;
-
-    // To show coordinates on the top-left
     coordinates.style.display = showCoordinate ? "block" : "none";
 
-    container.addEventListener('mousemove', (e) => {
+    // Setup key event listeners once, converting keys to lowercase
+    document.addEventListener("keydown", (e) => { keys[e.key.toLowerCase()] = true; });
+    document.addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
+
+    container.addEventListener("mousemove", (e) => {
         const rect = container.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         coordinates.textContent = `X: ${Math.floor(x)}, Y: ${Math.floor(y)}`;
     });
-
-    container.addEventListener('mouseleave', () => {
+    container.addEventListener("mouseleave", () => {
         coordinates.textContent = "Outside";
     });
 
-    document.addEventListener("keydown", (e) => keys[e.key] = true);
-    document.addEventListener("keyup", (e) => keys[e.key] = false);
-
-    // img src: https://images.app.goo.gl/56XvUQCpmG2J8oQx7
     const floorImage = new Image();
     floorImage.src = "Pictures/floor.png";
-
     floorImage.onload = function () {
         const scaleFactor = 1.5;
         const newWidth = floorImage.width * scaleFactor;
         const newHeight = floorImage.height * scaleFactor;
-
         container.style.width = newWidth + "px";
         container.style.height = newHeight + "px";
         container.style.backgroundImage = `url('${floorImage.src}')`;
@@ -65,15 +61,13 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     function createObjects() {
-        objectPositions.forEach(pos => {
+        objectPositions.forEach((pos) => {
             let obj = document.createElement("div");
             obj.style.left = pos.x + "px";
             obj.style.top = pos.y + "px";
             obj.style.width = pos.width + "px";
             obj.style.height = pos.height + "px";
-
             obj.style.display = showHitbox ? "block" : "none";
-
             if (pos.object === "wall") {
                 obj.classList.add("wall");
                 walls.push(obj);
@@ -82,22 +76,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 obj.dataset.id = pos.name;
                 interactiveObjects.push(obj);
             }
-
             container.appendChild(obj);
         });
     }
 
-    let movementInterval;
-    let isUsingButtons = false;
+    // Main game loop via requestAnimationFrame
+    function gameLoop() {
+        movePlayer();
+        requestAnimationFrame(gameLoop);
+    }
 
-    function movePlayer(direction = null) {
+    function movePlayer() {
+        if (isModalVNOpen) return; // pause movement if modal is open
+
         let newX = playerPosX, newY = playerPosY;
         let moving = false;
 
-        if (keys['w'] || keys['ArrowUp'] || direction === "up") { newY -= playerSpeed; moving = true; }
-        if (keys['s'] || keys['ArrowDown'] || direction === "down") { newY += playerSpeed; moving = true; }
-        if (keys['a'] || keys['ArrowLeft'] || direction === "left") { newX -= playerSpeed; moving = true; lastDirection = "left"; }
-        if (keys['d'] || keys['ArrowRight'] || direction === "right") { newX += playerSpeed; moving = true; lastDirection = "right"; }
+        if (keys['w'] || keys['arrowup']) { newY -= playerSpeed; moving = true; }
+        if (keys['s'] || keys['arrowdown']) { newY += playerSpeed; moving = true; }
+        if (keys['a'] || keys['arrowleft']) { newX -= playerSpeed; moving = true; lastDirection = "left"; }
+        if (keys['d'] || keys['arrowright']) { newX += playerSpeed; moving = true; lastDirection = "right"; }
 
         let interactionCheck = checkInteraction(newX, newY);
         let canMove = !isColliding(newX, newY) && !interactionCheck.collision && isWithinBounds(newX, newY);
@@ -109,46 +107,53 @@ document.addEventListener("DOMContentLoaded", () => {
             player.style.top = playerPosY + "px";
         }
 
-        player.style.backgroundImage = moving ? `url("Pictures/robot-run.gif")` : `url("Pictures/robot-idle.gif")`;
+        player.style.backgroundImage = moving
+            ? `url("Pictures/robot-run.gif")`
+            : `url("Pictures/robot-idle.gif")`;
 
         if (interactionCheck.near) {
             message.textContent = `Press F to show "${interactionCheck.id}"`;
             fButton.style.display = "block";
-        } else if (canMove) {
+        } else {
             message.textContent = "Explore!";
             fButton.style.display = "none";
         }
 
-        if (keys['f'] && interactionCheck.near) openModal(interactionCheck.id);
-        
-        player.style.transform = lastDirection === "left" ? "scaleX(-1)" : "scaleX(1)";
+        if (keys['f'] && interactionCheck.near) {
+            openModalVN(interactionCheck.id);
+        }
 
-        if (!isUsingButtons) requestAnimationFrame(() => movePlayer(null));
+        player.style.transform = lastDirection === "left" ? "scaleX(-1)" : "scaleX(1)";
     }
 
-    fButton.addEventListener("mouseup", () => {
-        const currentInteraction = checkInteraction(playerPosX, playerPosY);
-        if (currentInteraction.near) openModal(currentInteraction.id);
-    });
-    fButton.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        const currentInteraction = checkInteraction(playerPosX, playerPosY);
-        if (currentInteraction.near) openModal(currentInteraction.id);
-    });
+    // Button-based movement for touch/mouse
+    let movementInterval;
+    let isUsingButtons = false;
 
     function startMoving(direction) {
         if (!isUsingButtons) {
             isUsingButtons = true;
-            movePlayer(direction);
-            movementInterval = setInterval(() => movePlayer(direction), 7);
+            movementInterval = setInterval(() => {
+                if (isModalVNOpen) return;
+                keys[directionKey(direction)] = true;
+            }, 7);
         }
-        requestAnimationFrame(movePlayer); // This will loop movePlayer()
     }
 
-    function stopMoving() {
+    function stopMoving(direction) {
         clearInterval(movementInterval);
         isUsingButtons = false;
-        requestAnimationFrame(() => movePlayer(null));
+        keys[directionKey(direction)] = false;
+    }
+
+    function directionKey(direction) {
+        switch (direction) {
+            case "up": return "arrowup";
+            case "down": return "arrowdown";
+            case "left": return "arrowleft";
+            case "right": return "arrowright";
+            default: return "";
+        }
     }
 
     upButton.addEventListener("mousedown", () => startMoving("up"));
@@ -156,43 +161,77 @@ document.addEventListener("DOMContentLoaded", () => {
     leftButton.addEventListener("mousedown", () => startMoving("left"));
     rightButton.addEventListener("mousedown", () => startMoving("right"));
 
-    upButton.addEventListener("mouseup", stopMoving);
-    downButton.addEventListener("mouseup", stopMoving);
-    leftButton.addEventListener("mouseup", stopMoving);
-    rightButton.addEventListener("mouseup", stopMoving);
+    upButton.addEventListener("mouseup", () => stopMoving("up"));
+    downButton.addEventListener("mouseup", () => stopMoving("down"));
+    leftButton.addEventListener("mouseup", () => stopMoving("left"));
+    rightButton.addEventListener("mouseup", () => stopMoving("right"));
 
-    // For mobile touch support
     upButton.addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("up"); });
     downButton.addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("down"); });
     leftButton.addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("left"); });
     rightButton.addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("right"); });
 
-    upButton.addEventListener("touchend", stopMoving);
-    downButton.addEventListener("touchend", stopMoving);
-    leftButton.addEventListener("touchend", stopMoving);
-    rightButton.addEventListener("touchend", stopMoving);
+    upButton.addEventListener("touchend", () => stopMoving("up"));
+    downButton.addEventListener("touchend", () => stopMoving("down"));
+    leftButton.addEventListener("touchend", () => stopMoving("left"));
+    rightButton.addEventListener("touchend", () => stopMoving("right"));
 
-    requestAnimationFrame(() => movePlayer(null));
+    fButton.addEventListener("mouseup", () => {
+        const currentInteraction = checkInteraction(playerPosX, playerPosY);
+        if (currentInteraction.near) openModalVN(currentInteraction.id);
+    });
+    fButton.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        const currentInteraction = checkInteraction(playerPosX, playerPosY);
+        if (currentInteraction.near) openModalVN(currentInteraction.id);
+    });
 
-    function openModal(id) {
+    // Start the game loop
+    requestAnimationFrame(gameLoop);
+
+    async function openModalVN(id) {
+        isModalVNOpen = true;  // pause movement
+        modalVNTitle.textContent = "";
+        modalVNText.textContent = "";
+        modalVN.style.display = "flex";
+        modalVN.classList.add("fade-in");
+        modalVNImg.src = "Pictures/floor.png";
+
         if (id === "dialog1") {
-            modalImg.src = "Pictures/floor.png";
-            modalText.textContent = "This is dialog 1's description.";
+            modalVNTitle.textContent = "Dialog 1";
+            await typeWriterEffect(modalVNText, "This is dialog 1's description.");
         } else if (id === "dialog2") {
-            modalImg.src = "Pictures/floor.png";
-            modalText.textContent = "This is dialog 2's description.";
+            modalVNTitle.textContent = "Dialog 2";
+            await typeWriterEffect(modalVNText, "This is dialog 2's description.");
         } else if (id === "dialog3") {
-            modalImg.src = "Pictures/floor.png";
-            modalText.textContent = "This is dialog 3's description.";
+            modalVNTitle.textContent = "Dialog 3";
+            await typeWriterEffect(modalVNText, "This is dialog 3's description.");
         } else if (id === "dialog4") {
-            modalImg.src = "Pictures/floor.png";
-            modalText.textContent = "This is dialog 4's description.";
+            modalVNTitle.textContent = "Dialog 4";
+            await typeWriterEffect(modalVNText, "This is dialog 4's description.");
         }
-        modal.style.display = "flex";
     }
 
-    modal.addEventListener("click", () => { modal.style.display = "none"; });
-    document.addEventListener("keydown", () => { modal.style.display = "none"; });
+    async function typeWriterEffect(element, text, speed = 10) {
+        element.textContent = "";
+        for (let char of text) {
+            element.textContent += char;
+            await new Promise(resolve => setTimeout(resolve, speed));
+        }
+    }
+
+    modalVN.addEventListener("click", () => {
+        modalVN.style.display = "none";
+        modalVN.classList.remove("fade-in");
+        isModalVNOpen = false;
+    });
+    document.addEventListener("keydown", (e) => {
+        if (isModalVNOpen) {
+            modalVN.style.display = "none";
+            modalVN.classList.remove("fade-in");
+            isModalVNOpen = false;
+        }
+    });
 
     function isColliding(x, y) {
         let playerRect = { x, y, width: playerSize, height: playerSize };
@@ -255,18 +294,13 @@ document.addEventListener("DOMContentLoaded", () => {
     function isWithinBounds(x, y) {
         let containerWidth = container.clientWidth;
         let containerHeight = container.clientHeight;
-        let playerWidth = playerSize;
-        let playerHeight = playerSize;
-
         return (
             x >= 0 &&
             y >= 0 &&
-            x + playerWidth <= containerWidth &&
-            y + playerHeight <= containerHeight
+            x + playerSize <= containerWidth &&
+            y + playerSize <= containerHeight
         );
     }
 
     createObjects();
-    movePlayer();
-    startMoving(null); // I call it to fix the bug from super player speed
 });
