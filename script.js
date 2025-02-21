@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("modal");
     const modalImg = document.querySelector("#modal img");
     const modalText = document.getElementById("visual-novel-box");
+    const fButton = document.getElementById("f-btn");
 
     const playerSpeed = 2, playerSize = player.offsetWidth;
     let playerPosX = 60, playerPosY = 250;
@@ -80,14 +81,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function movePlayer() {
+    let movementInterval;
+    let isUsingButtons = false;
+
+    function movePlayer(direction = null) {
         let newX = playerPosX, newY = playerPosY;
         let moving = false;
 
-        if (keys['w'] || keys['ArrowUp']) { newY -= playerSpeed; moving = true; }
-        if (keys['s'] || keys['ArrowDown']) { newY += playerSpeed; moving = true; }
-        if (keys['a'] || keys['ArrowLeft']) { newX -= playerSpeed; moving = true; lastDirection = "left"; }
-        if (keys['d'] || keys['ArrowRight']) { newX += playerSpeed; moving = true; lastDirection = "right"; }
+        if (keys['w'] || keys['ArrowUp'] || direction === "up") { newY -= playerSpeed; moving = true; }
+        if (keys['s'] || keys['ArrowDown'] || direction === "down") { newY += playerSpeed; moving = true; }
+        if (keys['a'] || keys['ArrowLeft'] || direction === "left") { newX -= playerSpeed; moving = true; lastDirection = "left"; }
+        if (keys['d'] || keys['ArrowRight'] || direction === "right") { newX += playerSpeed; moving = true; lastDirection = "right"; }
 
         let interactionCheck = checkInteraction(newX, newY);
         let canMove = !isColliding(newX, newY) && !interactionCheck.collision && isWithinBounds(newX, newY);
@@ -103,16 +107,61 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (interactionCheck.near) {
             message.textContent = `Press F to show "${interactionCheck.id}"`;
+            fButton.style.display = "block";
         } else if (canMove) {
             message.textContent = "Explore!";
+            fButton.style.display = "none";
         }
 
         if (keys['f'] && interactionCheck.near) openModal(interactionCheck.id);
 
+        fButton.addEventListener("mouseup", () => {if (interactionCheck.near) openModal(interactionCheck.id); });  // For F button
+        fButton.addEventListener("touchend", (e) => { e.preventDefault();
+            if (currentInteraction.near) { openModal(currentInteraction.id); }
+        });
+        
         player.style.transform = lastDirection === "left" ? "scaleX(-1)" : "scaleX(1)";
 
+        if (!isUsingButtons) requestAnimationFrame(() => movePlayer(null));
+    }
+
+    function startMoving(direction) {
+        if (!isUsingButtons) {
+            isUsingButtons = true;
+            movePlayer(direction);
+            movementInterval = setInterval(() => movePlayer(direction), 7);
+        }
         requestAnimationFrame(movePlayer); // This will loop movePlayer()
     }
+
+    function stopMoving() {
+        clearInterval(movementInterval);
+        isUsingButtons = false;
+        requestAnimationFrame(() => movePlayer(null));
+    }
+
+    document.getElementById("up-btn").addEventListener("mousedown", () => startMoving("up"));
+    document.getElementById("down-btn").addEventListener("mousedown", () => startMoving("down"));
+    document.getElementById("left-btn").addEventListener("mousedown", () => startMoving("left"));
+    document.getElementById("right-btn").addEventListener("mousedown", () => startMoving("right"));
+
+    document.getElementById("up-btn").addEventListener("mouseup", stopMoving);
+    document.getElementById("down-btn").addEventListener("mouseup", stopMoving);
+    document.getElementById("left-btn").addEventListener("mouseup", stopMoving);
+    document.getElementById("right-btn").addEventListener("mouseup", stopMoving);
+
+    // For mobile touch support
+    document.getElementById("up-btn").addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("up"); });
+    document.getElementById("down-btn").addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("down"); });
+    document.getElementById("left-btn").addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("left"); });
+    document.getElementById("right-btn").addEventListener("touchstart", (e) => { e.preventDefault(); startMoving("right"); });
+
+    document.getElementById("up-btn").addEventListener("touchend", stopMoving);
+    document.getElementById("down-btn").addEventListener("touchend", stopMoving);
+    document.getElementById("left-btn").addEventListener("touchend", stopMoving);
+    document.getElementById("right-btn").addEventListener("touchend", stopMoving);
+
+    requestAnimationFrame(() => movePlayer(null));
 
     function openModal(id) {
         if (id === "dialog1") {
@@ -131,9 +180,8 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.style.display = "flex";
     }
 
-    // Only close the modal with a click (or a dedicated key) so movement keys aren't interfered with.
     modal.addEventListener("click", () => { modal.style.display = "none"; });
-    // Removed the keydown event that was hiding the modal immediately
+    document.addEventListener("keydown", () => { modal.style.display = "none"; });
 
     function isColliding(x, y) {
         let playerRect = { x, y, width: playerSize, height: playerSize };
@@ -209,4 +257,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
     createObjects();
     movePlayer();
+    startMoving(null); // I call it to fix the bug from super player speed
 });
