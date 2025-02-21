@@ -114,16 +114,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (keys['f'] && interactionCheck.near) openModal(interactionCheck.id);
-
-        fButton.addEventListener("mouseup", () => {if (interactionCheck.near) openModal(interactionCheck.id); });  // For F button
-        fButton.addEventListener("touchend", (e) => { e.preventDefault();
-            if (currentInteraction.near) { openModal(currentInteraction.id); }
-        });
         
         player.style.transform = lastDirection === "left" ? "scaleX(-1)" : "scaleX(1)";
 
         if (!isUsingButtons) requestAnimationFrame(() => movePlayer(null));
     }
+
+    fButton.addEventListener("mouseup", () => {
+        const currentInteraction = checkInteraction(playerPosX, playerPosY);
+        if (currentInteraction.near) {
+            openModal(currentInteraction.id);
+        }
+    });
+    fButton.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        const currentInteraction = checkInteraction(playerPosX, playerPosY);
+        if (currentInteraction.near) {
+            openModal(currentInteraction.id);
+        }
+    });
 
     function startMoving(direction) {
         if (!isUsingButtons) {
