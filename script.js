@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 obj.classList.add("wall");
                 walls.push(obj);
             } else if (pos.object === "dialogObject") {
-                obj.classList.add("dialog");
+                obj.classList.add("dialogObject");
                 obj.dataset.id = pos.id;
                 dialogObjects.push(obj);
             }
@@ -99,8 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (keys['a'] || keys['arrowleft']) { newX -= playerSpeed; moving = true; lastDirection = "left"; }
         if (keys['d'] || keys['arrowright']) { newX += playerSpeed; moving = true; lastDirection = "right"; }
 
-        let interactionCheck = checkInteraction(newX, newY);
-        let canMove = !isColliding(newX, newY) && !interactionCheck.collision && isWithinBounds(newX, newY);
+        let dialogCheck = checkDialog(newX, newY);
+        let canMove = !isColliding(newX, newY) && !dialogCheck.collision && isWithinBounds(newX, newY);
 
         if (canMove) {
             playerPosX = newX;
@@ -111,15 +111,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         player.style.backgroundImage = moving ? `url("Pictures/robot-run.gif")` : `url("Pictures/robot-idle.gif")`;
 
-        if (interactionCheck.near) {
-            message.textContent = `Press F to show "${interactionCheck.id}"`;
+        if (dialogCheck.near) {
+            message.textContent = `Press F to show "${dialogCheck.id}"`;
             fButton.style.display = "block";
         } else {
             message.textContent = "Explore!";
             fButton.style.display = "none";
         }
 
-        if (keys['f'] && interactionCheck.near) openModalVN(interactionCheck.id);
+        if (keys['f'] && dialogCheck.near) openModalVN(dialogCheck.id);
 
         player.style.transform = lastDirection === "left" ? "scaleX(-1)" : "scaleX(1)";
     }
@@ -175,12 +175,12 @@ document.addEventListener("DOMContentLoaded", () => {
     rightButton.addEventListener("touchend", () => stopMoving("right"));
 
     fButton.addEventListener("mouseup", () => {
-        const currentInteraction = checkInteraction(playerPosX, playerPosY);
+        const currentInteraction = checkDialog(playerPosX, playerPosY);
         if (currentInteraction.near) openModalVN(currentInteraction.id);
     });
     fButton.addEventListener("touchstart", (e) => {
         e.preventDefault();
-        const currentInteraction = checkInteraction(playerPosX, playerPosY);
+        const currentInteraction = checkDialog(playerPosX, playerPosY);
         if (currentInteraction.near) openModalVN(currentInteraction.id);
     });
 
@@ -240,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function checkInteraction(x, y) {
+    function checkDialog(x, y) {
         let playerRect = { x, y, width: playerSize, height: playerSize };
         let result = { collision: false, near: false, id: null };
 
@@ -258,10 +258,10 @@ document.addEventListener("DOMContentLoaded", () => {
             } else if (isNear(playerRect, objRect, 2)) {
                 result.near = true;
                 result.id = obj.dataset.id;
-                obj.style.display = "block";
+                if (!showHitbox) obj.style.display = "block";
                 obj.style.animation = "blink 1s infinite";
             } else {
-                obj.style.display = "none";
+                if (!showHitbox) obj.style.display = "none";
                 obj.style.animation = "none";
             }
         });

@@ -6,7 +6,7 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background-color: #100C18;
+    background-color: #130F1B;
 }
 
 .coordinates {
@@ -34,6 +34,12 @@ body {
     height: 60px;
     background: url("Pictures/robot-idle.gif") no-repeat center/cover;
     transition: transform 0.1s linear;
+    animation: playerIntro 0.5s ease-out;
+}
+
+@keyframes playerIntro {
+    from { transform: translateX(-70px); }
+    to { transform: translateX(0); }
 }
 
 /* For player's shadow */
@@ -61,7 +67,7 @@ body {
     100% { opacity: 0.7; }
 }
 
-.dialog {
+.dialogObject {
     position: absolute;
     background-color: white;
     animation: blink 0.5s infinite;
