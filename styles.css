@@ -61,7 +61,7 @@ body {
     100% { opacity: 0.7; }
 }
 
-.interactive {
+.dialog {
     position: absolute;
     background-color: white;
     animation: blink 0.5s infinite;
@@ -137,7 +137,7 @@ button:active {
 }
 
 #modal-vn-content {
-    background: black;
+    background: rgba(0, 0, 0, 0.1);
     padding: 20px;
     border-radius: 10px;
     text-align: center;
@@ -147,6 +147,7 @@ button:active {
 
 #modal-vn img {
     width: 100%;
+    max-height: 500px;
     border-radius: 10px;
     -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 60%, rgba(0, 0, 0, 0) 100%);
     mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 60%, rgba(0, 0, 0, 0) 100%);
@@ -154,15 +155,13 @@ button:active {
 
 #visual-novel-box {
     position: relative;
-    background: rgba(128, 128, 128, 0.1);
-    border: thick double rgb(140, 140, 140);
+    background: radial-gradient(circle, rgb(20, 20, 20) 50%, rgba(0, 0, 0, 0) 100%);
     color: white;
     font-size: 24px;
     padding: 20px;
     margin-top: 10px;
     border-radius: 20px;
-    height: 150px;
-    /* Increased to accommodate the title */
+    min-height: 150px;
 }
 
 .vn-title {
@@ -171,12 +170,16 @@ button:active {
     font-size: 28px;
     font-weight: 600;
     padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid transparent;
+    border-image: radial-gradient(circle, white 0%, rgba(255, 255, 255, 0) 100%);
+    border-image-slice: 1;
 }
 
 .vn-text {
     margin-top: 15px;
     font-size: 20px;
-    text-align: center;
+    text-align: justify;
+    text-align-last: center;
+    padding: 0 30px;
     word-wrap: break-word;
 }

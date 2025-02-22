@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let playerPosX = 60, playerPosY = 250;
     let lastDirection = "right";
     let keys = {};
-    let walls = [], interactiveObjects = [];
+    let walls = [], dialogObjects = [];
     let isModalVNOpen = false;
 
     // Maintenance (0 false, 1 true)
@@ -56,10 +56,10 @@ document.addEventListener("DOMContentLoaded", () => {
         { x: 715, y: 220, width: 110, height: 150, object: "wall" },
         { x: 0, y: 0, width: 1045, height: 50, object: "wall" },
         { x: 0, y: 530, width: 1045, height: 50, object: "wall" },
-        { x: 390, y: 235, width: 55, height: 30, object: "interactiveObject", name: "dialog1" },
-        { x: 590, y: 180, width: 55, height: 30, object: "interactiveObject", name: "dialog2" },
-        { x: 455, y: 300, width: 110, height: 30, object: "interactiveObject", name: "dialog3" },
-        { x: 375, y: 370, width: 30, height: 35, object: "interactiveObject", name: "dialog4" },
+        { x: 390, y: 235, width: 55, height: 30, object: "dialogObject", id: "Table 1" },
+        { x: 590, y: 180, width: 55, height: 30, object: "dialogObject", id: "Table 2" },
+        { x: 455, y: 300, width: 110, height: 30, object: "dialogObject", id: "Table 3" },
+        { x: 375, y: 370, width: 30, height: 35, object: "dialogObject", id: "Old man" },
     ];
 
     function createObjects() {
@@ -73,10 +73,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (pos.object === "wall") {
                 obj.classList.add("wall");
                 walls.push(obj);
-            } else if (pos.object === "interactiveObject") {
-                obj.classList.add("interactive");
-                obj.dataset.id = pos.name;
-                interactiveObjects.push(obj);
+            } else if (pos.object === "dialogObject") {
+                obj.classList.add("dialog");
+                obj.dataset.id = pos.id;
+                dialogObjects.push(obj);
             }
             container.appendChild(obj);
         });
@@ -189,34 +189,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function openModalVN(id) {
         isModalVNOpen = true;  // pause movement
+        modalVNImg.src = "";
         modalVNTitle.textContent = "";
         modalVNText.textContent = "";
         modalVN.style.display = "flex";
         modalVN.classList.add("fade-in");
-        modalVNImg.src = "Pictures/floor.png";
         soundPaperTurn.currentTime = 0;
         soundPaperTurn.play();
 
-        if (id === "dialog1") {
-            modalVNTitle.textContent = "Dialog 1";
-            await typeWriterEffect(modalVNText, "This is dialog 1's description.");
-        } else if (id === "dialog2") {
-            modalVNTitle.textContent = "Dialog 2";
-            await typeWriterEffect(modalVNText, "This is dialog 2's description.");
-        } else if (id === "dialog3") {
-            modalVNTitle.textContent = "Dialog 3";
-            await typeWriterEffect(modalVNText, "This is dialog 3's description.");
-        } else if (id === "dialog4") {
-            modalVNTitle.textContent = "Dialog 4";
-            await typeWriterEffect(modalVNText, "This is dialog 4's description.");
-        }
-    }
-
-    async function typeWriterEffect(element, text, speed = 10) {
-        element.textContent = "";
-        for (let char of text) {
-            element.textContent += char;
-            await new Promise(resolve => setTimeout(resolve, speed));
+        if (id === "Table 1") {
+            modalVNImg.src = "https://scontent.fceb1-3.fna.fbcdn.net/v/t39.30808-6/292985382_437572181710197_8080532175229102949_n.png?_nc_cat=104&ccb=1-7&_nc_sid=cc71e4&_nc_eui2=AeEJ87tKG-OJ7LjEQ3ax42_qin0CTrvmSASKfQJOu-ZIBOtDytUAEBGa8FXS5kDURi-KY7vhsCIfXuNsGf7kxKrZ&_nc_ohc=OFeaxSOxsasQ7kNvgE4Uhhb&_nc_oc=AdirPIVCWBjAmEtmdRXsARi6yUSLK5bHlKtk11neezsJTTMs496yrqJFtehT0l5M1KA&_nc_zt=23&_nc_ht=scontent.fceb1-3.fna&_nc_gid=AAdJewYzxTTM3MKvmrJUKpN&oh=00_AYC2kX7dKOuAXGI2SqW6MVpEBmW5_UqGBrCYa4WE6wpmeA&oe=67BF4B67";
+            modalVNTitle.textContent = "My Geometry Dash Cover Picture!";
+            modalVNText.textContent = "This is made inside Geometry Dash! No import image allowed in GD.";
+        } else if (id === "Table 2") {
+            modalVNTitle.textContent = "Lorem Ipsum";
+            modalVNText.textContent = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
+        } else if (id === "Table 3") {
+            modalVNImg.src = "https://scontent.fceb1-1.fna.fbcdn.net/v/t39.30808-6/448571253_905922861548676_9215265388986504411_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeFIKcPWzVpHIUDYl5mZ4NzrDup2N2UfZbwO6nY3ZR9lvEqTI9JO_Sa3tD9XPdKK2mdDqbVEvbRad-PBxsGA4Ksm&_nc_ohc=-Nb8fZbdV1sQ7kNvgH94okK&_nc_oc=AdhTKU9ETpyn0aNhHwhhHLMCnxUAdBlea3RAbvcTlZvDkin2L8sXprclRLn5WCmlQX0&_nc_zt=23&_nc_ht=scontent.fceb1-1.fna&_nc_gid=A7djgaFL6sw2Fyh3xLbpO1_&oh=00_AYA4z37IX0pJl1Jw1KNfy7sZJdoKSfDBe4uOMU9PTQPUFg&oe=67BF66A5";
+            modalVNTitle.textContent = "My Gacha Games wins 50/50!";
+            modalVNText.textContent = "This part always win 50/50 on any Gacha games.";
+        } else if (id === "Old man") {
+            modalVNTitle.textContent = "Hey you... Why did you make this?";
+            modalVNText.textContent = "It's a top secret old man.";
         }
     }
 
@@ -250,7 +244,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let playerRect = { x, y, width: playerSize, height: playerSize };
         let result = { collision: false, near: false, id: null };
 
-        interactiveObjects.forEach(obj => {
+        dialogObjects.forEach(obj => {
             let objRect = {
                 x: parseInt(obj.style.left),
                 y: parseInt(obj.style.top),
