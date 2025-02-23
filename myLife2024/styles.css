@@ -38,8 +38,13 @@ body {
 }
 
 @keyframes playerIntro {
-    from { transform: translateX(-70px); }
-    to { transform: translateX(0); }
+    from {
+        transform: translateX(-70px);
+    }
+
+    to {
+        transform: translateX(0);
+    }
 }
 
 /* For player's shadow */
@@ -62,9 +67,17 @@ body {
 }
 
 @keyframes blink {
-    0% { opacity: 0.7; }
-    50% { opacity: 0.1; }
-    100% { opacity: 0.7; }
+    0% {
+        opacity: 0.7;
+    }
+
+    50% {
+        opacity: 0.1;
+    }
+
+    100% {
+        opacity: 0.7;
+    }
 }
 
 .dialogObject {
@@ -134,8 +147,13 @@ button:active {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 #modal-vn.fade-in {
